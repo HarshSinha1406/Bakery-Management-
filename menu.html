@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Menu — Fig & Flour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-decor" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<section id="page-menu" class="page">
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 30 C 8 18, 20 8, 34 12 C 40 14, 42 22, 38 28 C 30 40, 14 40, 10 30 Z"/></svg>
+      <span>Fig & Flour</span>
+    </div>
+    <div class="nav-greet" id="nav-greet"></div>
+    <a class="cart-chip" id="cart-chip" href="checkout.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h15l-1.5 9a2 2 0 0 1-2 1.7H9a2 2 0 0 1-2-1.7L5 4H2"/><circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="21" r="1.4" fill="currentColor" stroke="none"/></svg>
+      Cart
+      <span class="cart-badge" id="cart-badge">0</span>
+    </a>
+  </nav>
+
+  <div class="menu-header">
+    <h2 class="display">Full menu</h2>
+    <p>Pastries, snacks, shakes, burgers, pizza and sides — tap anything to add it to your cart.</p>
+  </div>
+
+  <nav class="category-nav" id="category-nav" aria-label="Jump to category"></nav>
+
+  <div id="menu-sections"></div>
+
+  <div class="sticky-cart" id="sticky-cart">
+    <div class="info"><b id="sticky-count">0 items</b><br>₹<span id="sticky-total">0</span></div>
+    <a class="btn btn-primary" href="checkout.html">Review order</a>
+  </div>
+</section>
+
+<script src="assets/data.js"></script>
+<script>
+  var customer = getCustomer();
+  if (!customer) { window.location.href = "index.html"; }
+  else { document.getElementById("nav-greet").textContent = "Hi, " + customer.name.split(" ")[0] + " · Roll " + customer.roll; }
+
+  var cart = getCart();
+
+  // ---- category chips ----
+  var nav = document.getElementById("category-nav");
+  CATEGORY_ORDER.forEach(function (slug) {
+    if (itemsByCategory(slug).length === 0) return;
+    var a = document.createElement("a");
+    a.className = "category-chip";
+    a.href = "#cat-" + slug;
+    a.textContent = CATEGORY_LABELS[slug];
+    nav.appendChild(a);
+  });
+
+  // ---- sectioned grid, grouped by category ----
+  var sectionsWrap = document.getElementById("menu-sections");
+  CATEGORY_ORDER.forEach(function (slug) {
+    var items = itemsByCategory(slug);
+    if (items.length === 0) return;
+
+    var section = document.createElement("div");
+    section.className = "menu-section";
+    section.id = "cat-" + slug;
+    section.innerHTML = '<h3 class="display">' + CATEGORY_LABELS[slug] + '</h3>';
+
+    var grid = document.createElement("div");
+    grid.className = "menu-grid";
+
+    items.forEach(function (p, i) {
+      var accent = ACCENTS[i % ACCENTS.length];
+      var card = document.createElement("div");
+      card.className = "pastry-card";
+      card.style.setProperty("--card-accent", accent);
+      var qty = cart[p.id] || 0;
+      card.innerHTML =
+        '<span class="qty-tag' + (qty > 0 ? ' show' : '') + '" id="tag-' + p.id + '">' + qty + ' in cart</span>' +
+        '<div class="pastry-icon">' + ICONS[p.icon] + '</div>' +
+        '<div class="pastry-name">' + p.name + '</div>' +
+        '<div class="pastry-desc">' + p.desc + '</div>' +
+        '<div class="pastry-foot">' +
+          '<span class="pastry-price">₹' + p.price + '</span>' +
+          '<button type="button" class="add-btn" aria-label="Add ' + p.name + ' to cart">+</button>' +
+        '</div>';
+      card.querySelector(".add-btn").addEventListener("click", function () { addToCart(p.id); });
+      grid.appendChild(card);
+    });
+
+    section.appendChild(grid);
+    sectionsWrap.appendChild(section);
+  });
+
+  function addToCart(id) {
+    cart[id] = (cart[id] || 0) + 1;
+    setCart(cart);
+    var tag = document.getElementById("tag-" + id);
+    tag.textContent = cart[id] + " in cart";
+    tag.classList.add("show");
+    refreshCartUI();
+  }
+
+  function refreshCartUI() {
+    var count = cartCount(cart);
+    var total = cartTotal(cart);
+    var badge = document.getElementById("cart-badge");
+    badge.textContent = count;
+    badge.classList.toggle("show", count > 0);
+
+    var chip = document.getElementById("cart-chip");
+    chip.classList.remove("bump");
+    void chip.offsetWidth;
+    chip.classList.add("bump");
+
+    var sticky = document.getElementById("sticky-cart");
+    sticky.classList.toggle("show", count > 0);
+    document.getElementById("sticky-count").textContent = count + (count === 1 ? " item" : " items");
+    document.getElementById("sticky-total").textContent = money(total);
+  }
+
+  refreshCartUI();
+</script>
+</body>
+</html>

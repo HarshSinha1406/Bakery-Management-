@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Order confirmed — Fig & Flour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-decor" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<section id="page-confirm" class="page">
+  <div class="confirm-card">
+    <svg class="confirm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9"/></svg>
+    <h2 class="display">Order placed!</h2>
+    <p class="sub" id="confirm-greeting"></p>
+    <div class="order-id" id="confirm-order-id"></div>
+    <div class="pay-method-tag" id="confirm-method"></div>
+    <div class="confirm-summary" id="confirm-summary"></div>
+    <a class="btn btn-ghost" id="new-order-btn" href="index.html" style="display:block">Start a new order</a>
+  </div>
+</section>
+
+<script src="assets/data.js"></script>
+<script>
+  var order = STORE.get("ff_last_order", null);
+  if (!order) { window.location.href = "index.html"; }
+  else {
+    document.getElementById("confirm-greeting").textContent =
+      "Thanks, " + order.customer.name.split(" ")[0] + " (Roll " + order.customer.roll + ") — we're boxing it up.";
+    document.getElementById("confirm-order-id").textContent = "Order " + order.orderId;
+
+    var methodLabel = { upi: "Paid via UPI (" + order.methodDetail + ")", cash: "Cash on pickup", card: "Paid by " + order.methodDetail }[order.method] || order.method;
+    document.getElementById("confirm-method").innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>' + methodLabel;
+
+    var summaryHtml = "";
+    order.items.forEach(function (item) {
+      summaryHtml += '<div class="r"><span>' + item.name + ' × ' + item.qty + '</span><span>₹' + money(item.price * item.qty) + '</span></div>';
+    });
+    summaryHtml += '<div class="r total"><span>Total</span><span>₹' + money(order.total) + '</span></div>';
+    document.getElementById("confirm-summary").innerHTML = summaryHtml;
+  }
+
+  document.getElementById("new-order-btn").addEventListener("click", function () {
+    STORE.remove("ff_customer");
+    STORE.remove("ff_cart");
+    STORE.remove("ff_last_order");
+    // href already points to index.html, no preventDefault needed
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checkout — Fig & Flour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-decor" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<section id="page-checkout" class="page">
+  <div class="checkout-wrap">
+    <a class="back-link" href="menu.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to menu
+    </a>
+    <h2 class="display">Your order</h2>
+
+    <div id="order-list-wrap"></div>
+
+    <form class="pay-section" id="pay-form">
+      <h3>Payment method</h3>
+      <p class="pay-note">Choose how you'd like to pay. This is a demo checkout — no real payment is processed.</p>
+
+      <div class="field">
+        <label for="payment-method">Mode of payment</label>
+        <select id="payment-method">
+          <option value="upi">UPI</option>
+          <option value="cash">Cash on pickup</option>
+          <option value="card">Card</option>
+        </select>
+      </div>
+
+      <div class="method-panel" id="panel-upi">
+        <div class="field" style="margin-bottom:0">
+          <label for="upi-id">UPI ID</label>
+          <input type="text" id="upi-id" placeholder="yourname@upi">
+          <div class="field-error">Enter a UPI ID to continue.</div>
+        </div>
+      </div>
+
+      <div class="method-panel" id="panel-cash" style="display:none">
+        <div class="method-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9"/></svg>
+          <span>Pay in cash when you collect your order at the counter. Bring your order number with you.</span>
+        </div>
+      </div>
+
+      <div class="method-panel" id="panel-card" style="display:none">
+        <div class="field">
+          <label for="pay-name">Name on card</label>
+          <input type="text" id="pay-name" placeholder="Ananya Rao">
+          <div class="field-error">Enter the name on the card.</div>
+        </div>
+        <div class="field">
+          <label for="pay-card">Card number</label>
+          <input type="text" id="pay-card" placeholder="4242 4242 4242 4242" maxlength="19">
+          <div class="field-error">Enter a card number.</div>
+        </div>
+        <div class="row-2">
+          <div class="field" style="margin-bottom:0">
+            <label for="pay-exp">Expiry</label>
+            <input type="text" id="pay-exp" placeholder="MM/YY" maxlength="5">
+            <div class="field-error">Enter the expiry date.</div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label for="pay-cvv">CVV</label>
+            <input type="text" id="pay-cvv" placeholder="123" maxlength="4">
+            <div class="field-error">Enter the CVV.</div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="pay-btn" style="margin-top:20px">Place order — ₹<span id="pay-total">0</span></button>
+    </form>
+  </div>
+</section>
+
+<script src="assets/data.js"></script>
+<script>
+  var customer = getCustomer();
+  if (!customer) { window.location.href = "index.html"; }
+
+  var cart = getCart();
+
+  function renderOrderList() {
+    var wrap = document.getElementById("order-list-wrap");
+    var ids = Object.keys(cart).filter(function (k) { return cart[k] > 0; });
+
+    if (ids.length === 0) {
+      wrap.innerHTML =
+        '<div class="empty-cart">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>' +
+          '<div>Your cart is empty — <a href="menu.html" style="color:var(--raspberry);font-weight:600">go back and add something sweet</a>.</div>' +
+        '</div>';
+      document.getElementById("pay-form").style.display = "none";
+      return;
+    }
+    document.getElementById("pay-form").style.display = "block";
+
+    var rows = "";
+    ids.forEach(function (id) {
+      var p = pastryById(id);
+      var qty = cart[id];
+      rows +=
+        '<div class="order-row" data-id="' + id + '">' +
+          '<div class="icon">' + ICONS[p.icon] + '</div>' +
+          '<div class="name">' + p.name + '</div>' +
+          '<div class="qty-controls">' +
+            '<button type="button" class="qty-btn" data-action="dec" aria-label="Remove one ' + p.name + '">−</button>' +
+            '<span>' + qty + '</span>' +
+            '<button type="button" class="qty-btn" data-action="inc" aria-label="Add one ' + p.name + '">+</button>' +
+          '</div>' +
+          '<div class="line-price">₹' + money(p.price * qty) + '</div>' +
+        '</div>';
+    });
+
+    var total = cartTotal(cart);
+    var count = cartCount(cart);
+
+    wrap.innerHTML =
+      '<div class="order-list">' + rows + '</div>' +
+      '<div class="totals">' +
+        '<div class="totals-row"><span>Items (' + count + ')</span><span>₹' + money(total) + '</span></div>' +
+        '<div class="totals-row"><span>Packaging</span><span>₹0</span></div>' +
+        '<div class="totals-row grand"><span>Total</span><span>₹' + money(total) + '</span></div>' +
+      '</div>';
+
+    wrap.querySelectorAll(".qty-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.closest(".order-row").getAttribute("data-id");
+        cart[id] = Math.max(0, (cart[id] || 0) + (btn.getAttribute("data-action") === "inc" ? 1 : -1));
+        setCart(cart);
+        renderOrderList();
+      });
+    });
+
+    document.getElementById("pay-total").textContent = money(total);
+  }
+
+  renderOrderList();
+
+  // ---- payment method switcher ----
+  var methodSelect = document.getElementById("payment-method");
+  var panels = { upi: document.getElementById("panel-upi"), cash: document.getElementById("panel-cash"), card: document.getElementById("panel-card") };
+
+  function showMethodPanel(method) {
+    Object.keys(panels).forEach(function (key) { panels[key].style.display = key === method ? "block" : "none"; });
+  }
+  methodSelect.addEventListener("change", function () { showMethodPanel(methodSelect.value); });
+  showMethodPanel(methodSelect.value);
+
+  // format card + expiry as the user types
+  var cardInput = document.getElementById("pay-card");
+  cardInput.addEventListener("input", function () {
+    var digits = cardInput.value.replace(/\D/g, "").slice(0, 16);
+    cardInput.value = digits.replace(/(.{4})/g, "$1 ").trim();
+  });
+  var expInput = document.getElementById("pay-exp");
+  expInput.addEventListener("input", function () {
+    var digits = expInput.value.replace(/\D/g, "").slice(0, 4);
+    expInput.value = digits.length > 2 ? digits.slice(0, 2) + "/" + digits.slice(2) : digits;
+  });
+
+  function fieldWrap(el) { return el.closest(".field"); }
+  function markInvalid(el, bad) { fieldWrap(el).classList.toggle("invalid", bad); }
+
+  document.getElementById("pay-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (cartCount(cart) === 0) return;
+
+    var method = methodSelect.value;
+    var detail = "";
+    var valid = true;
+
+    if (method === "upi") {
+      var upi = document.getElementById("upi-id");
+      var upiOk = /.+@.+/.test(upi.value.trim());
+      markInvalid(upi, !upiOk);
+      valid = upiOk;
+      detail = upi.value.trim();
+    } else if (method === "card") {
+      var nameEl = document.getElementById("pay-name");
+      var cardEl = document.getElementById("pay-card");
+      var expEl = document.getElementById("pay-exp");
+      var cvvEl = document.getElementById("pay-cvv");
+      var nameOk = nameEl.value.trim() !== "";
+      var cardOk = cardEl.value.replace(/\D/g, "").length >= 12;
+      var expOk = /^\d{2}\/\d{2}$/.test(expEl.value.trim());
+      var cvvOk = /^\d{3,4}$/.test(cvvEl.value.trim());
+      markInvalid(nameEl, !nameOk);
+      markInvalid(cardEl, !cardOk);
+      markInvalid(expEl, !expOk);
+      markInvalid(cvvEl, !cvvOk);
+      valid = nameOk && cardOk && expOk && cvvOk;
+      detail = "card ending " + cardEl.value.replace(/\D/g, "").slice(-4);
+    }
+    // cash needs no extra field
+
+    if (!valid) return;
+
+    var orderId = "FF-" + Math.random().toString(36).slice(2, 7).toUpperCase();
+    var order = {
+      orderId: orderId,
+      customer: customer,
+      items: Object.keys(cart).filter(function (k) { return cart[k] > 0; }).map(function (id) {
+        var p = pastryById(id);
+        return { name: p.name, qty: cart[id], price: p.price };
+      }),
+      total: cartTotal(cart),
+      method: method,
+      methodDetail: detail,
+      timestamp: new Date().toISOString()
+    };
+
+    STORE.set("ff_last_order", order);
+    STORE.set("ff_cart", {});
+    window.location.href = "confirmation.html";
+  });
+</script>
+</body>
+</html>

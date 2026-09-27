@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fig & Flour — Order your pastries</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-decor" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<section id="page-welcome" class="page">
+  <div class="welcome-wrap">
+    <div>
+      <div class="brand-mark top">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 30 C 8 18, 20 8, 34 12 C 40 14, 42 22, 38 28 C 30 40, 14 40, 10 30 Z"/></svg>
+        Fig & Flour
+      </div>
+      <h1 class="hero-title display">Warm pastries,<br>ready to order.</h1>
+      <p class="hero-sub">Tell us who's ordering, then pick your way through the menu — pastries, snacks, shakes, burgers, pizza and sides.</p>
+
+      <form class="entry-card" id="entry-form" novalidate>
+        <div class="field" id="field-name">
+          <label for="input-name">Your name</label>
+          <input type="text" id="input-name" placeholder="e.g. Ananya Rao" autocomplete="name">
+          <div class="field-error">Enter your name to continue.</div>
+        </div>
+        <div class="field" id="field-roll">
+          <label for="input-roll">Roll number</label>
+          <input type="text" id="input-roll" placeholder="e.g. 21CS045" autocomplete="off">
+          <div class="field-error">Enter your roll number to continue.</div>
+        </div>
+        <button type="submit" class="btn btn-primary">Start my order</button>
+      </form>
+    </div>
+    <div class="hero-graphic" aria-hidden="true">
+      <svg viewBox="0 0 200 200" fill="none">
+        <ellipse cx="100" cy="150" rx="70" ry="10" fill="var(--line)" opacity="0.6"/>
+        <path d="M40 110 C35 70, 75 35, 125 45 C155 51, 168 78, 155 100 C135 135, 65 138, 40 110 Z" fill="var(--honey)" opacity="0.9"/>
+        <path d="M60 95 L78 72 M72 105 L94 80 M88 112 L110 88" stroke="var(--cream)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<script src="assets/data.js"></script>
+<script>
+  // If someone already entered their details this session, skip straight to the menu.
+  if (getCustomer()) { window.location.href = "menu.html"; }
+
+  document.getElementById("entry-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var nameInput = document.getElementById("input-name");
+    var rollInput = document.getElementById("input-roll");
+    var nameField = document.getElementById("field-name");
+    var rollField = document.getElementById("field-roll");
+    var nameVal = nameInput.value.trim();
+    var rollVal = rollInput.value.trim();
+
+    nameField.classList.toggle("invalid", nameVal === "");
+    rollField.classList.toggle("invalid", rollVal === "");
+    if (nameVal === "" || rollVal === "") return;
+
+    STORE.set("ff_customer", { name: nameVal, roll: rollVal });
+    window.location.href = "menu.html";
+  });
+</script>
+</body>
+</html>
